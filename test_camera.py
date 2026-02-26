@@ -7,8 +7,43 @@ def ensure_folder_exists(folder):
     if not os.path.exists(folder):
         os.makedirs(folder)
 
+def list_cameras():
+    index = 0
+    arr = []
+    while True:
+        cap = cv2.VideoCapture(index)
+        if not cap.read()[0]:
+            break
+        else:
+            arr.append(index)
+        cap.release()
+        index += 1
+    return arr
+
+def choose_camera():
+    cameras = list_cameras()
+    if not cameras:
+        print("No cameras found.")
+        return None
+
+    print("Available cameras:")
+    for idx in cameras:
+        print(f"  {idx}")
+
+    while True:
+        choice = input("Enter the camera index to use (or 'q' to quit): ")
+        if choice.lower() == 'q':
+            return None
+        if choice.isdigit() and int(choice) in cameras:
+            return int(choice)
+        print("Invalid choice. Please try again.")
+
 def main():
-    cap = cv2.VideoCapture(1)  # Use 0 for default webcam, change if you have multiple cameras
+    camera_index = choose_camera()
+    if camera_index is None:
+        return
+
+    cap = cv2.VideoCapture(camera_index)
 
     if not cap.isOpened():
         print("Error: Could not open webcam.")
