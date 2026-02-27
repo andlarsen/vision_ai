@@ -1,0 +1,35 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    environment:
+      # Keeps the model in RAM so the 2nd picture is faster
+      - OLLAMA_KEEP_ALIVE=-1 
+      # Prevents CPU over-saturation (adjust based on your physical cores)
+      - OLLAMA_NUM_PARALLEL=1
+    container_name: ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    restart: unless-stopped
+
+  vision:
+    build: .
+    container_name: vision-ai
+    depends_on:
+      - ollama
+    environment:
+      - OLLAMA_HOST=http://127.0.0.1:11434
+      - DISPLAY=${DISPLAY}
+      - QT_QPA_FONTDIR=/usr/share/fonts/truetype/dejavu
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix  # for GUI windows
+      - ./photos:/app/photos           # save photos here
+    devices:
+      - /dev/video0:/dev/video0        # integrated webcam
+      - /dev/video1:/dev/video1        # usb webcam
+    network_mode: host                 # needed for X11 display access
+    restart: unless-stopped
+
+volumes:
+  ollama_data:
